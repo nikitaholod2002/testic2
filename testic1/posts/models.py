@@ -14,7 +14,7 @@ class Post(models.Model):
     name = models.CharField(max_length=100)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     full_text = models.TextField(blank=True)
-    likes = models.IntegerField(default=0)
+    likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_DEFAULT, default="Другое")
     data_create = models.DateTimeField(auto_now_add=True)
     data_update = models.DateTimeField(auto_now=True)

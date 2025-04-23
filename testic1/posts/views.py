@@ -1,9 +1,9 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import  Category, Post, Comment
 from .serializers import  CategorySerializer, PostSerializer, CommentSerializer
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 
 
 
@@ -11,7 +11,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -28,14 +28,18 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
+
         post = self.get_object()
-        post.likes += 1
+        post.likes.add(request.user)
+        post.save()
         return Response({'status': 'пост лайкнут'})
 
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
+
         post = self.get_object()
-        post.likes-=1
+        post.likes.remove(request.user)
+        post.save()
         return Response({'status': 'лайк с поста убран'})
 
 
@@ -43,7 +47,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
